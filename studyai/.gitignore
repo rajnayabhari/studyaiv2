@@ -1,0 +1,26 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Environment Variables
+.env
+.env.*
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database and Storage
+*.sqlite3
+*.db
+chroma_db/
+studyai.db
+
+# Testing
+.pytest_cache/
+
+# OS generated files
+.DS_Store
+Thumbs.db
