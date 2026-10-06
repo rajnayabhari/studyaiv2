@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Face Attendance{% endblock %}
+{% block body %}
+<main class="center">
+  <form class="card" method="post" id="login-form">
+    <h1>Face Attendance</h1>
+    <p class="sub">Sign in to continue</p>
+    {% for cat, msg in get_flashed_messages(with_categories=true) %}<div class="flash">{{ msg }}</div>{% endfor %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="username">Username</label>
+    <input id="username" name="username" autocomplete="username" required autofocus>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button class="btn" id="login-submit" type="submit">Sign in</button>
+  </form>
+</main>
+{% endblock %}
