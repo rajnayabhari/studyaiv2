@@ -68,38 +68,49 @@ def manage_students():
             
     return render_template('admin/students.html', students=students, sections=sections)
 
-@admin_bp.route('/add_student', methods=['POST'])
+@admin_bp.route('/add_student', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
 def add_student():
-    roll_no = request.form.get('roll_no')
-    full_name = request.form.get('full_name')
-    email = request.form.get('email')
-    section_id = request.form.get('section_id')
-    password = request.form.get('password')
+    if request.method == 'POST':
+        roll_no = request.form.get('roll_no')
+        full_name = request.form.get('full_name')
+        email = request.form.get('email')
+        section_id = request.form.get('section_id')
+        password = request.form.get('password')
+        
+        if roll_no and full_name and section_id:
+            if Student.query.filter_by(roll_no=roll_no).first():
+                flash('Roll number already exists!', 'error')
+                return redirect(url_for('admin.add_student'))
+                
+            from ..models import User
+            if User.query.filter_by(username=roll_no).first():
+                flash('A user with this roll number as username already exists!', 'error')
+                return redirect(url_for('admin.add_student'))
+                
+            student = Student(roll_no=roll_no, full_name=full_name, email=email, section_id=section_id)
+            db.session.add(student)
+            db.session.flush() # get student.id
+            
+            # Create User account using roll_no as username
+            user = User(username=roll_no, role='student', student_id=student.id)
+            user.set_password(password if password else 'password123')
+            db.session.add(user)
+            
+            db.session.commit()
+            flash('Student added and login credentials created (Username: Roll No).', 'success')
+            return redirect(url_for('admin.manage_students'))
     
-    if roll_no and full_name and section_id:
-        if Student.query.filter_by(roll_no=roll_no).first():
-            flash('Roll number already exists!', 'error')
-            return redirect(url_for('admin.manage_students'))
-            
-        from ..models import User
-        if User.query.filter_by(username=roll_no).first():
-            flash('A user with this roll number as username already exists!', 'error')
-            return redirect(url_for('admin.manage_students'))
-            
-        student = Student(roll_no=roll_no, full_name=full_name, email=email, section_id=section_id)
-        db.session.add(student)
-        db.session.flush() # get student.id
-        
-        # Create User account using roll_no as username
-        user = User(username=roll_no, role='student', student_id=student.id)
-        user.set_password(password if password else 'password123')
-        db.session.add(user)
-        
-        db.session.commit()
-        flash('Student added and login credentials created (Username: Roll No).', 'success')
-    return redirect(url_for('admin.manage_students'))
+    sections = Section.query.all()
+    return render_template('admin/add_student.html', sections=sections)
+
+@admin_bp.route('/enroll_face')
+@login_required
+@role_required('admin')
+def enroll_face():
+    students = Student.query.all()
+    return render_template('admin/enroll_face.html', students=students)
 
 @admin_bp.route('/delete_student/<int:student_id>', methods=['POST'])
 @login_required
@@ -122,12 +133,32 @@ def delete_student(student_id):
 def edit_student(student_id):
     student = Student.query.get_or_404(student_id)
     if request.method == 'POST':
-        student.roll_no = request.form.get('roll_no')
+        new_roll_no = request.form.get('roll_no')
+        new_password = request.form.get('password')
+        
+        from ..models import User
+        user = User.query.filter_by(student_id=student.id).first()
+        
+        # If roll_no is changing, verify it is not taken
+        if new_roll_no and new_roll_no != student.roll_no:
+            if Student.query.filter_by(roll_no=new_roll_no).first() or User.query.filter_by(username=new_roll_no).first():
+                flash('That roll number is already in use by another student!', 'error')
+                return redirect(url_for('admin.edit_student', student_id=student.id))
+            
+            student.roll_no = new_roll_no
+            if user:
+                user.username = new_roll_no
+                
         student.full_name = request.form.get('full_name')
         student.email = request.form.get('email')
         student.section_id = request.form.get('section_id')
+        
+        # If admin types a new password, reset it
+        if new_password and user:
+            user.set_password(new_password)
+            
         db.session.commit()
-        flash('Student details updated successfully.', 'success')
+        flash('Student details and credentials updated successfully.', 'success')
         return redirect(url_for('admin.manage_students'))
         
     from ..models import Section, ClassSession, Attendance, Course
@@ -210,7 +241,7 @@ def update_classroom():
         room.camera_url = camera_url
         db.session.commit()
         flash(f'Camera URL updated for {room.name}.', 'success')
-    return redirect(url_for('admin.dashboard'))
+    return redirect(url_for('admin.infrastructure'))
 
 @admin_bp.route('/add_classroom', methods=['POST'])
 @login_required
@@ -223,7 +254,7 @@ def add_classroom():
         db.session.add(room)
         db.session.commit()
         flash('Classroom added.', 'success')
-    return redirect(url_for('admin.dashboard'))
+    return redirect(url_for('admin.infrastructure'))
 
 @admin_bp.route('/add_teacher', methods=['POST'])
 @login_required
@@ -264,7 +295,7 @@ def add_section():
         db.session.add(sec)
         db.session.commit()
         flash('Section added.', 'success')
-    return redirect(url_for('admin.dashboard'))
+    return redirect(url_for('admin.infrastructure'))
 
 @admin_bp.route('/add_course', methods=['POST'])
 @login_required
@@ -277,7 +308,17 @@ def add_course():
         db.session.add(c)
         db.session.commit()
         flash('Course added.', 'success')
-    return redirect(url_for('admin.dashboard'))
+    return redirect(url_for('admin.infrastructure'))
+
+@admin_bp.route('/infrastructure', methods=['GET'])
+@login_required
+@role_required('admin')
+def infrastructure():
+    from ..models import Classroom, Section, Course
+    classrooms = Classroom.query.all()
+    sections = Section.query.all()
+    courses = Course.query.all()
+    return render_template('admin/infrastructure.html', classrooms=classrooms, sections=sections, courses=courses)
 
 @admin_bp.route('/attendance', methods=['GET'])
 @login_required

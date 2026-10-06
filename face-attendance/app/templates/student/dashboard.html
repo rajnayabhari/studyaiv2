@@ -2,53 +2,82 @@
 {% block title %}Student Dashboard{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>Student Dashboard</h2>
-    <p>Welcome back, {{ current_user.username }}!</p>
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Overview</h2>
+        <p class="text-sm text-gray-500">Welcome back, <span class="font-semibold text-gray-700">{{ current_user.username }}</span></p>
+    </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; margin-bottom: 2rem;">
-        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05)); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); text-align: center;">
-            <h4 style="margin: 0 0 0.5rem 0; color: #93c5fd; font-weight: 500;">Overall Attendance</h4>
-            <div style="font-size: 3rem; font-weight: 700; color: #fff;">{{ "%.1f"|format(rate) }}%</div>
+    <!-- KPIs -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="rounded-xl bg-white shadow-sm p-6 border border-gray-100 flex flex-col justify-center">
+            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Overall Attendance</h4>
+            <div class="text-4xl font-extrabold {% if rate >= 80 %}text-green-500{% else %}text-red-500{% endif %}">
+                {{ "%.1f"|format(rate) }}%
+            </div>
         </div>
-        <div style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(167, 139, 250, 0.05)); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(167, 139, 250, 0.2); text-align: center;">
-            <h4 style="margin: 0 0 0.5rem 0; color: #c4b5fd; font-weight: 500;">Classes Attended</h4>
-            <div style="font-size: 3rem; font-weight: 700; color: #fff;">{{ total }}</div>
+        <div class="rounded-xl bg-white shadow-sm p-6 border border-gray-100 flex flex-col justify-center">
+            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total Classes Attended</h4>
+            <div class="text-4xl font-extrabold text-gray-900">{{ total }}</div>
         </div>
     </div>
 
-    <h3>Your Attendance History</h3>
-    {% if records %}
-    <table style="width: 100%; text-align: left; border-collapse: collapse;">
-        <tr>
-            <th>Date & Time</th>
-            <th>Status</th>
-            <th>Method</th>
-        </tr>
-        {% for record in records %}
-        <tr>
-            <td>{{ record.marked_at.strftime('%Y-%m-%d %I:%M %p') }}</td>
-            <td>
-                {% if record.status == 'present' %}
-                    <span style="color: #10b981; font-weight: 600;">Present</span>
-                {% elif record.status == 'late' %}
-                    <span style="color: #f59e0b; font-weight: 600;">Late</span>
-                {% else %}
-                    <span style="color: #ef4444; font-weight: 600;">{{ record.status|capitalize }}</span>
-                {% endif %}
-            </td>
-            <td>
-                {% if record.method == 'face' %}
-                    <span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">Face AI</span>
-                {% else %}
-                    <span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">Manual</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% else %}
-    <p style="color: #94a3b8;">You have no attendance records yet.</p>
-    {% endif %}
+    <!-- History Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Your Attendance History</h3>
+        </div>
+        
+        {% if records %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date & Time</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Course</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Method</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for record in records %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ record.marked_at.strftime('%Y-%m-%d %I:%M %p') }}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-indigo-600">{{ record.session.course.name }}</td>
+                        <td class="px-6 py-4 text-sm">
+                            {% if record.status == 'present' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Present</span>
+                            {% elif record.status == 'late' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Late</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{{ record.status|capitalize }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            {% if record.method == 'face' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Face AI
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    Manual
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">No classes attended</h3>
+            <p class="text-sm text-gray-500">When you attend a class, it will show up here.</p>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Add New Student{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Add New Student</h2>
+            <p class="text-sm text-gray-500">Create a new student profile and generate login credentials.</p>
+        </div>
+        <a href="{{ url_for('admin.manage_students') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg shadow-sm transition">
+            Cancel
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+        <form method="POST" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Academic Profile -->
+                <div class="space-y-4 md:border-r border-gray-100 md:pr-6">
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Academic Profile</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Roll No (Login Username)</label>
+                        <input type="text" name="roll_no" required placeholder="e.g. BCA005" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Full Name</label>
+                        <input type="text" name="full_name" required placeholder="John Doe" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Email Address</label>
+                        <input type="email" name="email" placeholder="john.doe@example.com" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Enrolled Section</label>
+                        <select name="section_id" required class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-gray-700 bg-white transition">
+                            <option value="">Select a section...</option>
+                            {% for section in sections %}
+                            <option value="{{ section.id }}">{{ section.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Security Data -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Security</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Initial Password</label>
+                        <input type="password" name="password" placeholder="Default: password123" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                        <p class="text-xs text-gray-400 mt-1">Leave blank to use the default system password.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pt-6 border-t border-gray-100 flex justify-end">
+                <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition">
+                    Create Student
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

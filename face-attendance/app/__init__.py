@@ -35,4 +35,9 @@ def create_app(config_class=Config, test_config=None):
     def health():
         return {"status": "ok"}
         
+    @app.route('/')
+    def index():
+        from flask import redirect, url_for
+        return redirect(url_for('auth.login'))
+        
     return app

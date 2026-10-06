@@ -2,39 +2,55 @@
 {% block title %}Manage Teachers{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2 style="margin: 0;">Manage Teachers</h2>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn" style="background: #475569;">Back to Dashboard</a>
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Manage Teachers</h2>
+            <p class="text-sm text-gray-500">View and manage faculty accounts.</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Add Teacher
+        </a>
     </div>
 
-    <table style="width: 100%; text-align: left; border-collapse: collapse;">
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Login Username</th>
-            <th>Actions</th>
-        </tr>
-        {% for teacher in teachers %}
-        <tr>
-            <td>{{ teacher.full_name }}</td>
-            <td>{{ teacher.email }}</td>
-            <td>
-                {% if teacher.user %}
-                    <span style="color: #60a5fa; font-family: monospace;">{{ teacher.user.username }}</span>
-                {% else %}
-                    <span style="color: #ef4444;">No Account</span>
-                {% endif %}
-            </td>
-            <td>
-                <a href="{{ url_for('admin.edit_teacher', teacher_id=teacher.id) }}" class="btn" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-right: 0.5rem; text-decoration: none;">Edit</a>
-                <form action="{{ url_for('admin.delete_teacher', teacher_id=teacher.id) }}" method="POST" style="display: inline;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" style="background: rgba(239, 68, 68, 0.4); color: #fff; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="return confirm('WARNING: This will delete the teacher, their user account, and ALL their past class sessions! Proceed?');">Delete</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Login Username</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for teacher in teachers %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ teacher.full_name }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ teacher.email }}</td>
+                        <td class="px-6 py-4 text-sm">
+                            {% if teacher.user %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 font-mono">
+                                    {{ teacher.user.username }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">No Account</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-right space-x-2">
+                            <a href="{{ url_for('admin.edit_teacher', teacher_id=teacher.id) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded transition">Edit</a>
+                            <form action="{{ url_for('admin.delete_teacher', teacher_id=teacher.id) }}" method="POST" class="inline-block">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium rounded border border-red-200 transition" onclick="return confirm('WARNING: This will delete the teacher, their user account, and ALL their past class sessions! Proceed?');">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

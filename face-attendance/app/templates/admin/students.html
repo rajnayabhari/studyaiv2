@@ -2,171 +2,91 @@
 {% block title %}Manage Students{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>Manage Students</h2>
-    <table style="width: 100%; text-align: left; border-collapse: collapse;">
-        <tr>
-            <th>Roll No</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Section</th>
-            <th>Attendance %</th>
-            <th>Enrolled Faces</th>
-            <th>Actions</th>
-        </tr>
-        {% for student in students %}
-        <tr>
-            <td>{{ student.roll_no }}</td>
-            <td>{{ student.full_name }}</td>
-            <td>{{ student.email }}</td>
-            <td>{{ student.section.name }}</td>
-            <td>
-                {% if student.attendance_percentage is not none %}
-                    {% if student.attendance_percentage >= 80 %}
-                        <span style="color: #10b981; font-weight: 600;">{{ "%.1f"|format(student.attendance_percentage) }}%</span>
-                    {% else %}
-                        <span style="color: #ef4444; font-weight: 600;">{{ "%.1f"|format(student.attendance_percentage) }}%</span>
-                    {% endif %}
-                {% else %}
-                    <span style="color: #94a3b8;">N/A (No Classes)</span>
-                {% endif %}
-            </td>
-            <td>
-                {% if student.template_count > 0 %}
-                    <span style="color: #10b981; font-weight: 600;">{{ student.template_count }} photos</span>
-                {% else %}
-                    <span style="color: #ef4444;">None</span>
-                {% endif %}
-            </td>
-            <td>
-                <a href="{{ url_for('admin.edit_student', student_id=student.id) }}" class="btn" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-right: 0.5rem; text-decoration: none;">Edit</a>
-                <form action="{{ url_for('admin.clear_faces', student_id=student.id) }}" method="POST" style="display: inline;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-right: 0.5rem;" onclick="return confirm('Clear all face data for this student?');">Clear Photos</button>
-                </form>
-                <form action="{{ url_for('admin.delete_student', student_id=student.id) }}" method="POST" style="display: inline;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" style="background: rgba(239, 68, 68, 0.4); color: #fff; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="return confirm('WARNING: This will delete the student and ALL their attendance records! Proceed?');">Delete Student</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    
-    <div style="margin-top: 2rem; background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px;">
-        <h3 style="margin-top: 0;">Add New Student</h3>
-        <form action="{{ url_for('admin.add_student') }}" method="POST" style="display: flex; gap: 1rem; align-items: flex-end;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div style="flex: 1;">
-                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Roll No (Unique)</label>
-                <input type="text" name="roll_no" required style="width: 100%;">
-            </div>
-            <div style="flex: 2;">
-                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Full Name</label>
-                <input type="text" name="full_name" required style="width: 100%;">
-            </div>
-            <div style="flex: 2;">
-                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Email</label>
-                <input type="email" name="email" required style="width: 100%;">
-            </div>
-            <div style="flex: 1;">
-                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Section</label>
-                <select name="section_id" required style="width: 100%;">
-                    {% for section in sections %}
-                    <option value="{{ section.id }}">{{ section.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div style="flex: 1.5;">
-                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Login Password</label>
-                <input type="password" name="password" placeholder="Default: password123" style="width: 100%;">
-            </div>
-            <button type="submit" style="padding: 0.6rem 1.5rem;">Add</button>
-        </form>
-    </div>
-    
-    <div style="margin-top: 2rem; border-top: 1px solid #ccc; padding-top: 1rem; text-align: center;">
-        <h3>Webcam Enrollment</h3>
-        <select id="enroll-student-id" style="padding: 0.5rem; margin-bottom: 1rem;">
-            {% for student in students %}
-            <option value="{{ student.id }}">{{ student.full_name }} ({{ student.roll_no }})</option>
-            {% endfor %}
-        </select>
-        <button onclick="startEnrollment()" style="padding: 0.5rem 1rem;">Start Camera</button>
-        <button onclick="captureFrame()" id="capture-btn" disabled style="padding: 0.5rem 1rem;">Capture Frame</button>
-        <div id="enroll-status" style="margin-top: 1rem; font-weight: bold;"></div>
-        
-        <div style="margin-top: 1rem; position: relative; width: 640px; height: 480px; margin-left: auto; margin-right: auto; background: #000; border-radius: 8px; overflow: hidden;">
-            <!-- Mirrored video stream -->
-            <video id="video-preview" width="640" height="480" autoplay style="display: none; object-fit: cover; transform: scaleX(-1);"></video>
-            <canvas id="canvas-preview" width="640" height="480" style="display: none;"></canvas>
-            
-            <!-- Face Guide Oval -->
-            <div id="enroll-oval" style="position: absolute; top: 15%; left: 30%; width: 40%; height: 70%; border: 3px dashed rgba(255, 255, 255, 0.7); border-radius: 50%; box-shadow: 0 0 0 9999px rgba(0,0,0,0.4); pointer-events: none; display: none; transition: border-color 0.3s;"></div>
+<div class="space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Manage Students</h2>
+            <p class="text-sm text-gray-500">Add students, edit profiles, and track enrollment data.</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{{ url_for('admin.enroll_face') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg shadow-sm transition">
+                <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Enroll Faces
+            </a>
+            <a href="{{ url_for('admin.add_student') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Add Student
+            </a>
         </div>
     </div>
-    
-    <script>
-    let video = document.getElementById('video-preview');
-    let canvas = document.getElementById('canvas-preview');
-    let captureBtn = document.getElementById('capture-btn');
-    let statusDiv = document.getElementById('enroll-status');
-    let stream = null;
-    let csrf_token = "{{ csrf_token() }}";
-    
-    async function startEnrollment() {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-            video.srcObject = stream;
-            video.style.display = 'block';
-            document.getElementById('enroll-oval').style.display = 'block';
-            captureBtn.disabled = false;
-            statusDiv.innerText = "Camera started. Please capture at least 5 frames.";
-        } catch (err) {
-            statusDiv.innerText = "Error starting camera: " + err;
-        }
-    }
-    
-    async function captureFrame() {
-        if (!stream) return;
-        let context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        let b64 = canvas.toDataURL('image/jpeg', 0.9);
-        
-        let studentId = document.getElementById('enroll-student-id').value;
-        statusDiv.innerText = "Processing...";
-        
-        try {
-            let res = await fetch(`/api/enroll/${studentId}/capture`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrf_token
-                },
-                body: JSON.stringify({ image: b64 })
-            });
-            let data = await res.json();
-            let oval = document.getElementById('enroll-oval');
-            if (data.success) {
-                statusDiv.innerText = "Accepted! " + data.message;
-                statusDiv.style.color = "green";
-                oval.style.borderColor = "#0f0";
-                setTimeout(() => oval.style.borderColor = "rgba(255, 255, 255, 0.7)", 1500);
-            } else {
-                statusDiv.innerText = "Rejected: " + data.message;
-                statusDiv.style.color = "red";
-                oval.style.borderColor = "#f00";
-                setTimeout(() => oval.style.borderColor = "rgba(255, 255, 255, 0.7)", 1500);
-            }
-        } catch (err) {
-            statusDiv.innerText = "Error: " + err;
-            statusDiv.style.color = "red";
-        }
-    }
-    </script>
 
-    <div style="margin-top: 1rem;">
-        <a href="{{ url_for('admin.dashboard') }}">Back to Dashboard</a>
+    <!-- Student Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" x-data="{ search: '' }">
+        <div class="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Student Directory</h3>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" x-model="search" placeholder="Search students..." class="pl-9 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64 transition">
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Roll No</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Section</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Attendance</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Enrolled Data</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for student in students %}
+                    <tr class="hover:bg-gray-50 transition-colors" x-show="search === '' || '{{ student.full_name|lower }} {{ student.roll_no|lower }} {{ student.email|lower }}'.includes(search.toLowerCase())">
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ student.roll_no }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            {{ student.full_name }}
+                            <div class="text-xs text-gray-400 mt-0.5">{{ student.email }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ student.section.name }}</td>
+                        <td class="px-6 py-4 text-sm">
+                            {% if student.attendance_percentage is not none %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if student.attendance_percentage >= 80 %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ "%.1f"|format(student.attendance_percentage) }}%
+                                </span>
+                            {% else %}
+                                <span class="text-gray-400 text-xs italic">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            {% if student.template_count > 0 %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    {{ student.template_count }} photos
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">None</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-right space-x-2">
+                            <a href="{{ url_for('admin.edit_student', student_id=student.id) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded transition">Edit</a>
+                            <form action="{{ url_for('admin.clear_faces', student_id=student.id) }}" method="POST" class="inline-block">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-xs font-medium rounded border border-yellow-200 transition" onclick="return confirm('Clear all face data for this student?');">Reset Face</button>
+                            </form>
+                            <form action="{{ url_for('admin.delete_student', student_id=student.id) }}" method="POST" class="inline-block">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium rounded border border-red-200 transition" onclick="return confirm('WARNING: This will delete the student and ALL their attendance records! Proceed?');">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

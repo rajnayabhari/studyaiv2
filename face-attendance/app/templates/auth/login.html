@@ -1,22 +1,41 @@
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
+{% block title %}Sign In{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 400px; margin: 2rem auto;">
-    <h2>Login</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <div style="margin-bottom: 1rem;">
-            {{ form.username.label }}<br>
-            {{ form.username(style="width: 100%; padding: 0.5rem;") }}
+<div class="min-h-[80vh] flex items-center justify-center">
+    <div class="bg-white p-8 md:p-10 rounded-2xl shadow-xl border border-gray-100 w-full max-w-md">
+        
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-100">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Welcome back</h2>
+            <p class="text-sm text-gray-500 mt-2">Enter your credentials to access the system</p>
         </div>
-        <div style="margin-bottom: 1rem;">
-            {{ form.password.label }}<br>
-            {{ form.password(style="width: 100%; padding: 0.5rem;") }}
+
+        <form method="POST" class="space-y-5">
+            {{ form.hidden_tag() }}
+            
+            <div>
+                {{ form.username.label(class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5") }}
+                {{ form.username(class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-gray-50 focus:bg-white placeholder-gray-400", placeholder="e.g. admin or BCA001") }}
+            </div>
+            
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    {{ form.password.label(class="block text-xs font-bold text-gray-500 uppercase tracking-wide") }}
+                </div>
+                {{ form.password(class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition bg-gray-50 focus:bg-white placeholder-gray-400", placeholder="••••••••") }}
+            </div>
+            
+            <div class="pt-2">
+                {{ form.submit(class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition cursor-pointer") }}
+            </div>
+        </form>
+        
+        <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+            <p class="text-xs text-gray-400">Secured by Nexus AI Engine</p>
         </div>
-        <div>
-            {{ form.submit(style="padding: 0.5rem 1rem; cursor: pointer;") }}
-        </div>
-    </form>
+    </div>
 </div>
 {% endblock %}

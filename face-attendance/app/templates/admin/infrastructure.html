@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Manage Infrastructure{% endblock %}
+
+{% block content %}
+<div class="space-y-8" x-data="{ activeTab: 'classrooms' }">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Infrastructure Management</h2>
+            <p class="text-sm text-gray-500">Configure classrooms, sections, and courses.</p>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8">
+            <button @click="activeTab = 'classrooms'" 
+                    :class="{'border-indigo-500 text-indigo-600': activeTab === 'classrooms', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'classrooms'}"
+                    class="whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                Classrooms (Cameras)
+            </button>
+            <button @click="activeTab = 'sections'" 
+                    :class="{'border-indigo-500 text-indigo-600': activeTab === 'sections', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'sections'}"
+                    class="whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                Academic Sections
+            </button>
+            <button @click="activeTab = 'courses'" 
+                    :class="{'border-indigo-500 text-indigo-600': activeTab === 'courses', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'courses'}"
+                    class="whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                Courses
+            </button>
+        </nav>
+    </div>
+
+    <!-- Classrooms Tab -->
+    <div x-show="activeTab === 'classrooms'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1">
+            <form action="{{ url_for('admin.add_classroom') }}" method="POST" class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm sticky top-6">
+                <h4 class="font-bold text-gray-900 mb-4 tracking-tight">Add Classroom</h4>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Classroom Name</label>
+                        <input type="text" name="name" placeholder="e.g. Room 102" required class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Camera URL / IP</label>
+                        <input type="text" name="camera_url" placeholder="e.g. 0 or rtsp://..." required class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white text-sm font-medium py-2 rounded-md hover:bg-indigo-700 transition shadow-sm">Provision Hardware</button>
+                </div>
+            </form>
+        </div>
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Camera Feed URL</th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for room in classrooms %}
+                            <tr class="hover:bg-gray-50 group">
+                                <td class="px-6 py-4 text-sm font-bold text-gray-900 w-1/3">{{ room.name }}</td>
+                                <td class="px-6 py-4 w-1/2">
+                                    <form action="{{ url_for('admin.update_classroom') }}" method="POST" class="flex gap-2">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="classroom_id" value="{{ room.id }}">
+                                        <div class="relative flex-1">
+                                            <input type="text" name="camera_url" value="{{ room.camera_url }}" 
+                                                   class="w-full pl-3 pr-4 py-1.5 text-sm font-mono border-transparent bg-transparent hover:bg-gray-100 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded transition-all outline-none"
+                                                   placeholder="Camera IP or 0">
+                                            <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-gray-700 transition-all shadow-sm">Save</button>
+                                    </form>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Online</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sections Tab -->
+    <div x-show="activeTab === 'sections'" style="display: none;" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1">
+            <form action="{{ url_for('admin.add_section') }}" method="POST" class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm sticky top-6">
+                <h4 class="font-bold text-gray-900 mb-4 tracking-tight">Add Section</h4>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Section Name</label>
+                        <input type="text" name="name" placeholder="e.g. BCA 8th A" required class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Semester</label>
+                        <input type="text" name="semester" placeholder="e.g. 8th" required class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white text-sm font-medium py-2 rounded-md hover:bg-indigo-700 transition shadow-sm">Create Section</button>
+                </div>
+            </form>
+        </div>
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Section Name</th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Semester</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for sec in sections %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm font-bold text-gray-900">{{ sec.name }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">{{ sec.semester }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courses Tab -->
+    <div x-show="activeTab === 'courses'" style="display: none;" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1">
+            <form action="{{ url_for('admin.add_course') }}" method="POST" class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm sticky top-6">
+                <h4 class="font-bold text-gray-900 mb-4 tracking-tight">Add Course</h4>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Course Name</label>
+                        <input type="text" name="name" placeholder="e.g. Database Systems" required class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white text-sm font-medium py-2 rounded-md hover:bg-indigo-700 transition shadow-sm">Create Course</button>
+                </div>
+            </form>
+        </div>
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Course Code</th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Course Name</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for c in courses %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm font-mono font-medium text-indigo-600">{{ c.code }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">{{ c.name }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
