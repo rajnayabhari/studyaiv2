@@ -10,6 +10,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         :root {
             --bg-color: #0f172a;
@@ -227,18 +233,31 @@
     </header>
     
     <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="flash {{ category }}">
-                        {% if category == 'error' %}⚠️{% else %}ℹ️{% endif %}
-                        {{ message }}
-                    </div>
+                    Toastify({
+                        text: "{{ message }}",
+                        duration: 4000,
+                        close: true,
+                        gravity: "top",
+                        position: "right",
+                        style: {
+                            background: "{{ 'linear-gradient(to right, #ef4444, #f87171)' if category == 'error' else 'linear-gradient(to right, #10b981, #34d399)' if category == 'success' else 'linear-gradient(to right, #3b82f6, #60a5fa)' }}",
+                            borderRadius: "8px",
+                            fontFamily: "Inter, sans-serif",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+                        }
+                    }).showToast();
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
-        {% block content %}{% endblock %}
-    </div>
+    </script>
 </body>
 </html>

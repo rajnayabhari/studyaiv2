@@ -88,6 +88,21 @@ def run_kiosk_controller(app, classroom_id):
         
         while True:
             state = get_kiosk_state(classroom_id)
+            
+            # Check for active session first!
+            session = get_active_session(classroom_id, app.config)
+            if not session:
+                state['state'] = 'STANDBY'
+                state['prompt'] = 'No active class. Waiting for teacher...'
+                state['result'] = None
+                state['message'] = ''
+                time.sleep(2.0)
+                continue
+                
+            if state['state'] == 'STANDBY':
+                state['state'] = 'IDLE'
+                state['prompt'] = 'Please look at the camera.'
+                
             if state['state'] == 'IDLE':
                 try:
                     frame = cam.get_frame()
@@ -114,24 +129,25 @@ def run_kiosk_controller(app, classroom_id):
                                 db.session.add(att)
                                 db.session.commit()
                             else:
-                                # Match found! Check session and section
-                                session = get_active_session(classroom_id, app.config)
-                                if not session:
+                                # Match found! We already know session exists.
+                                success, att_msg, status = mark_attendance(session.id, best_sid, 'face', similarity=best_score)
+                                if success:
+                                    state['state'] = 'RESULT'
+                                    state['result'] = 'success'
+                                    from ..models import Student
+                                    student = Student.query.get(best_sid)
+                                    state['message'] = f'{status.capitalize()} - {student.full_name}'
+                                    state['denial_count'] = 0
+                                else:
                                     state['state'] = 'RESULT'
                                     state['result'] = 'error'
-                                    state['message'] = 'No class in session right now.'
-                                else:
-                                    success, att_msg, status = mark_attendance(session.id, best_sid, 'face', similarity=best_score)
-                                    if success:
-                                        state['state'] = 'RESULT'
-                                        state['result'] = 'success'
-                                        from ..models import Student
-                                        student = Student.query.get(best_sid)
-                                        state['message'] = f'{status.capitalize()} - {student.full_name}'
-                                        state['denial_count'] = 0
+                                    if att_msg == 'not_in_section':
+                                        state['message'] = 'You are not enrolled in this section.'
+                                    elif att_msg == 'already_marked':
+                                        state['message'] = 'You are already marked present for this class.'
+                                    elif att_msg == 'window_closed':
+                                        state['message'] = 'Check-in window closed. Please ask your teacher.'
                                     else:
-                                        state['state'] = 'RESULT'
-                                        state['result'] = 'error'
                                         state['message'] = att_msg
                                         
                                 # Log attempt

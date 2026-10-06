@@ -10,6 +10,7 @@
             <th>Name</th>
             <th>Email</th>
             <th>Section</th>
+            <th>Attendance %</th>
             <th>Enrolled Faces</th>
             <th>Actions</th>
         </tr>
@@ -19,6 +20,17 @@
             <td>{{ student.full_name }}</td>
             <td>{{ student.email }}</td>
             <td>{{ student.section.name }}</td>
+            <td>
+                {% if student.attendance_percentage is not none %}
+                    {% if student.attendance_percentage >= 80 %}
+                        <span style="color: #10b981; font-weight: 600;">{{ "%.1f"|format(student.attendance_percentage) }}%</span>
+                    {% else %}
+                        <span style="color: #ef4444; font-weight: 600;">{{ "%.1f"|format(student.attendance_percentage) }}%</span>
+                    {% endif %}
+                {% else %}
+                    <span style="color: #94a3b8;">N/A (No Classes)</span>
+                {% endif %}
+            </td>
             <td>
                 {% if student.template_count > 0 %}
                     <span style="color: #10b981; font-weight: 600;">{{ student.template_count }} photos</span>
@@ -64,6 +76,10 @@
                     <option value="{{ section.id }}">{{ section.name }}</option>
                     {% endfor %}
                 </select>
+            </div>
+            <div style="flex: 1.5;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.2rem;">Login Password</label>
+                <input type="password" name="password" placeholder="Default: password123" style="width: 100%;">
             </div>
             <button type="submit" style="padding: 0.6rem 1.5rem;">Add</button>
         </form>

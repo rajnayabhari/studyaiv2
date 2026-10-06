@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Edit Teacher - {{ teacher.full_name }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">Edit Teacher</h2>
+        <a href="{{ url_for('admin.manage_teachers') }}" class="btn" style="background: #475569;">Back to Teachers</a>
+    </div>
+
+    <form method="POST" style="display: flex; flex-direction: column; gap: 1rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div>
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Full Name</label>
+            <input type="text" name="full_name" value="{{ teacher.full_name }}" required style="width: 100%;">
+        </div>
+        
+        <div>
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Email</label>
+            <input type="email" name="email" value="{{ teacher.email }}" required style="width: 100%;">
+        </div>
+        
+        {% if teacher.user %}
+        <div>
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Login Username (Cannot be changed for demo)</label>
+            <input type="text" value="{{ teacher.user.username }}" disabled style="width: 100%; opacity: 0.6;">
+        </div>
+        
+        <div>
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Update Password (Leave blank to keep current)</label>
+            <input type="password" name="password" placeholder="New Password" style="width: 100%;">
+        </div>
+        {% else %}
+        <div style="padding: 1rem; background: rgba(245, 158, 11, 0.1); border: 1px dashed rgba(245, 158, 11, 0.4); border-radius: 8px;">
+            <p style="color: #f59e0b; margin: 0;">This teacher does not have a user account.</p>
+        </div>
+        {% endif %}
+        
+        <button type="submit" style="margin-top: 1rem; padding: 0.8rem; font-size: 1rem; background: #10b981;">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Manage Teachers{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="margin: 0;">Manage Teachers</h2>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn" style="background: #475569;">Back to Dashboard</a>
+    </div>
+
+    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Login Username</th>
+            <th>Actions</th>
+        </tr>
+        {% for teacher in teachers %}
+        <tr>
+            <td>{{ teacher.full_name }}</td>
+            <td>{{ teacher.email }}</td>
+            <td>
+                {% if teacher.user %}
+                    <span style="color: #60a5fa; font-family: monospace;">{{ teacher.user.username }}</span>
+                {% else %}
+                    <span style="color: #ef4444;">No Account</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('admin.edit_teacher', teacher_id=teacher.id) }}" class="btn" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-right: 0.5rem; text-decoration: none;">Edit</a>
+                <form action="{{ url_for('admin.delete_teacher', teacher_id=teacher.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" style="background: rgba(239, 68, 68, 0.4); color: #fff; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="return confirm('WARNING: This will delete the teacher, their user account, and ALL their past class sessions! Proceed?');">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

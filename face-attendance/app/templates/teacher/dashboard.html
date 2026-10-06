@@ -4,6 +4,117 @@
 {% block content %}
 <div class="card">
     <h2>Teacher Dashboard</h2>
-    <p>Welcome to the teacher panel. Class roster and manual attendance will go here.</p>
+    <p>Welcome, {{ current_user.username }}!</p>
+
+    {% if active_session %}
+    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin-top: 0; color: #10b981; border: none;">Live Class Session</h3>
+            <p><strong>Course:</strong> {{ active_session.course.name }}</p>
+            <p><strong>Classroom:</strong> {{ active_session.classroom.name }}</p>
+            <p><strong>Started:</strong> {{ active_session.start_at.strftime('%I:%M %p') }}</p>
+            <p>Currently accepting automated AI attendance.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <a href="/kiosk/{{ active_session.classroom.id }}" target="_blank" class="btn" style="background: #3b82f6; padding: 1rem 1.5rem; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">Launch Camera</a>
+            <form action="{{ url_for('teacher.stop_session', session_id=active_session.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" style="background: #ef4444; padding: 1rem 1.5rem; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">End Class Session</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px dashed rgba(255,255,255,0.2);">
+        <h3 style="margin-top: 0; border: none;">Start a New Class Session</h3>
+        <p>You do not have a live class running right now. Select the details below to start one.</p>
+        
+        <form action="{{ url_for('teacher.start_session') }}" method="POST" style="display: flex; gap: 1rem; align-items: flex-end; margin-top: 1.5rem;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Course</label>
+                <select name="course_id" required style="width: 100%;">
+                    {% for course in courses %}
+                    <option value="{{ course.id }}">{{ course.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Section</label>
+                <select name="section_id" required style="width: 100%;">
+                    {% for section in sections %}
+                    <option value="{{ section.id }}">{{ section.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Classroom / Camera</label>
+                <select name="classroom_id" required style="width: 100%;">
+                    {% for room in classrooms %}
+                    <option value="{{ room.id }}">{{ room.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" style="padding: 0.8rem 2rem; background: #10b981; font-size: 1rem;">Start Class</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <h3>Your Recent Classes</h3>
+    {% if sessions %}
+    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+        <tr>
+            <th>Date</th>
+            <th>Course</th>
+            <th>Section</th>
+            <th>Classroom</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        {% for session in sessions %}
+        <tr>
+            <td>{{ session.start_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ session.course.name }}</td>
+            <td>{{ session.section.name }}</td>
+            <td>{{ session.classroom.name }}</td>
+            <td>
+                {% if session.status == 'open' %}
+                    <span style="color: #10b981; font-weight: 600;">Live</span>
+                {% else %}
+                    <span style="color: #94a3b8;">{{ session.status|capitalize }}</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('teacher.view_session', session_id=session.id) }}" class="btn" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 0.3rem 0.6rem; font-size: 0.8rem; text-decoration: none;">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="color: #94a3b8;">No recent classes found.</p>
+    {% endif %}
+
+    <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="margin-top: 0;">Generate Custom Reports</h3>
+        <p>Download aggregated attendance records across a custom date range.</p>
+        <form action="{{ url_for('teacher.generate_report') }}" method="POST" style="display: flex; gap: 1rem; align-items: flex-end; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 12px; margin-top: 1rem;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Start Date</label>
+                <input type="date" name="start_date" required style="width: 100%;">
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">End Date</label>
+                <input type="date" name="end_date" required style="width: 100%;">
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Format</label>
+                <select name="format" style="width: 100%;">
+                    <option value="csv">Excel (CSV)</option>
+                    <option value="pdf">PDF</option>
+                </select>
+            </div>
+            <button type="submit" style="padding: 0.8rem 2rem; background: #6366f1;">Download Report</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

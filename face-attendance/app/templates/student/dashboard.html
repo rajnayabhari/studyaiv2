@@ -4,6 +4,51 @@
 {% block content %}
 <div class="card">
     <h2>Student Dashboard</h2>
-    <p>Welcome to the student panel. Your attendance records will go here.</p>
+    <p>Welcome back, {{ current_user.username }}!</p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; margin-bottom: 2rem;">
+        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05)); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); text-align: center;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #93c5fd; font-weight: 500;">Overall Attendance</h4>
+            <div style="font-size: 3rem; font-weight: 700; color: #fff;">{{ "%.1f"|format(rate) }}%</div>
+        </div>
+        <div style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(167, 139, 250, 0.05)); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(167, 139, 250, 0.2); text-align: center;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #c4b5fd; font-weight: 500;">Classes Attended</h4>
+            <div style="font-size: 3rem; font-weight: 700; color: #fff;">{{ total }}</div>
+        </div>
+    </div>
+
+    <h3>Your Attendance History</h3>
+    {% if records %}
+    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+        <tr>
+            <th>Date & Time</th>
+            <th>Status</th>
+            <th>Method</th>
+        </tr>
+        {% for record in records %}
+        <tr>
+            <td>{{ record.marked_at.strftime('%Y-%m-%d %I:%M %p') }}</td>
+            <td>
+                {% if record.status == 'present' %}
+                    <span style="color: #10b981; font-weight: 600;">Present</span>
+                {% elif record.status == 'late' %}
+                    <span style="color: #f59e0b; font-weight: 600;">Late</span>
+                {% else %}
+                    <span style="color: #ef4444; font-weight: 600;">{{ record.status|capitalize }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if record.method == 'face' %}
+                    <span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">Face AI</span>
+                {% else %}
+                    <span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">Manual</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="color: #94a3b8;">You have no attendance records yet.</p>
+    {% endif %}
 </div>
 {% endblock %}

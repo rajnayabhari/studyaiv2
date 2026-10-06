@@ -4,9 +4,44 @@
 {% block content %}
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2>Attendance Records</h2>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn" style="background: #475569;">Back to Dashboard</a>
+        <h2 style="margin: 0;">Attendance Records</h2>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{{ url_for('admin.export_attendance', **request.args) }}" class="btn" style="background: #10b981;">Download CSV</a>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn" style="background: #475569;">Back to Dashboard</a>
+        </div>
     </div>
+
+    <form method="GET" action="{{ url_for('admin.view_attendance') }}" style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: flex-end;">
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Semester</label>
+            <select name="semester" style="width: 100%;">
+                <option value="">All Semesters</option>
+                {% for sem in semesters %}
+                <option value="{{ sem }}" {% if request.args.get('semester') == sem %}selected{% endif %}>{{ sem }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Section</label>
+            <select name="section_id" style="width: 100%;">
+                <option value="">All Sections</option>
+                {% for sec in sections %}
+                <option value="{{ sec.id }}" {% if request.args.get('section_id')|int == sec.id %}selected{% endif %}>{{ sec.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Student</label>
+            <select name="student_id" style="width: 100%;">
+                <option value="">All Students</option>
+                {% for stu in students %}
+                <option value="{{ stu.id }}" {% if request.args.get('student_id')|int == stu.id %}selected{% endif %}>{{ stu.full_name }} ({{ stu.roll_no }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn" style="background: #3b82f6;">Filter</button>
+        <a href="{{ url_for('admin.view_attendance') }}" class="btn" style="background: rgba(255,255,255,0.1); color: #fff;">Clear</a>
+    </form>
 
     {% if records %}
     <table style="width: 100%; text-align: left; border-collapse: collapse;">
