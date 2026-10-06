@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 2rem auto;">
+    <h2>Login</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div style="margin-bottom: 1rem;">
+            {{ form.username.label }}<br>
+            {{ form.username(style="width: 100%; padding: 0.5rem;") }}
+        </div>
+        <div style="margin-bottom: 1rem;">
+            {{ form.password.label }}<br>
+            {{ form.password(style="width: 100%; padding: 0.5rem;") }}
+        </div>
+        <div>
+            {{ form.submit(style="padding: 0.5rem 1rem; cursor: pointer;") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Edit Student - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">Edit Student</h2>
+        <a href="{{ url_for('admin.manage_students') }}" class="btn" style="background: #475569;">Back to Students</a>
+    </div>
+
+    <form method="POST" style="display: flex; flex-direction: column; gap: 1rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div>
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Roll No (Unique)</label>
+            <input type="text" name="roll_no" value="{{ student.roll_no }}" required style="width: 100%;">
+        </div>
+        
+        <div>
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Full Name</label>
+            <input type="text" name="full_name" value="{{ student.full_name }}" required style="width: 100%;">
+        </div>
+        
+        <div>
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Email</label>
+            <input type="email" name="email" value="{{ student.email }}" style="width: 100%;">
+        </div>
+        
+        <div>
+            <label style="display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.3rem;">Section</label>
+            <select name="section_id" required style="width: 100%;">
+                {% for section in sections %}
+                <option value="{{ section.id }}" {% if student.section_id == section.id %}selected{% endif %}>{{ section.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" style="margin-top: 1rem; padding: 0.8rem; font-size: 1rem; background: #10b981;">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Admin Dashboard</h2>
+    <p>Welcome to the admin panel.</p>
+    <ul>
+        <li><a href="{{ url_for('admin.manage_students') }}">Students</a>: {{ students|length }}</li>
+        <li><a href="{{ url_for('admin.view_attendance') }}">Attendance Logs</a></li>
+        <li>Teachers: {{ teachers|length }}</li>
+        <li>Classrooms: {{ classrooms|length }}</li>
+        <li>Sections: {{ sections|length }}</li>
+    </ul>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div>
+            <h3>Camera Test & Configuration</h3>
+            {% for room in classrooms %}
+            <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <strong>{{ room.name }}</strong>
+                    <a href="{{ url_for('kiosk.index', classroom_id=room.id) }}" target="_blank" class="btn" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">Open Kiosk</a>
+                </div>
+                <form action="{{ url_for('admin.update_classroom') }}" method="POST" style="display: flex; gap: 0.5rem;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="classroom_id" value="{{ room.id }}">
+                    <input type="text" name="camera_url" value="{{ room.camera_url }}" style="flex-grow: 1; padding: 0.4rem; font-size: 0.85rem;" placeholder="IP URL or 0">
+                    <button type="submit" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Save</button>
+                </form>
+            </div>
+            {% endfor %}
+            
+            <form action="{{ url_for('admin.add_classroom') }}" method="POST" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.2);">
+                <h4 style="margin-top: 0;">Add Classroom</h4>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <input type="text" name="name" placeholder="Name (e.g. Room 102)" required style="flex: 1; padding: 0.4rem;">
+                    <input type="text" name="camera_url" placeholder="Camera URL (e.g. 0 or IP)" required style="flex: 2; padding: 0.4rem;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 0.5rem;">Add Classroom</button>
+            </form>
+        </div>
+
+        <div>
+            <h3>Quick Actions</h3>
+            <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <form action="{{ url_for('admin.quick_session') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="classroom_id" style="width: 100%; margin-bottom: 1rem;">
+                        {% for room in classrooms %}
+                        <option value="{{ room.id }}">{{ room.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" style="width: 100%; background: #10b981;">Start Quick Session (30m)</button>
+                </form>
+            </div>
+
+            <h3>Manage Teachers & Sections</h3>
+            <form action="{{ url_for('admin.add_teacher') }}" method="POST" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.2); margin-bottom: 1rem;">
+                <h4 style="margin-top: 0; margin-bottom: 0.5rem;">Add Teacher</h4>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <input type="text" name="name" placeholder="Full Name" required style="flex: 1; padding: 0.4rem;">
+                    <input type="email" name="email" placeholder="Email" required style="flex: 1; padding: 0.4rem;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 0.5rem;">Add Teacher</button>
+            </form>
+
+            <form action="{{ url_for('admin.add_section') }}" method="POST" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.2);">
+                <h4 style="margin-top: 0; margin-bottom: 0.5rem;">Add Section</h4>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <input type="text" name="name" placeholder="Section Name (e.g. BCA 8th A)" required style="flex: 2; padding: 0.4rem;">
+                    <input type="text" name="semester" placeholder="Semester (e.g. 8th)" required style="flex: 1; padding: 0.4rem;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 0.5rem;">Add Section</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

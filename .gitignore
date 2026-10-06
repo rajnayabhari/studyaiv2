@@ -1,6 +1,42 @@
-.venv/
-__pycache__/
-*.pyc
+# Environments
 .env
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database
+*.sqlite3
 instance/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs and databases
+*.log
+logs/
+
+# pytest
 .pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Build / Distribution
+dist/
+build/
+*.egg-info/

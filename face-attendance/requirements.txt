@@ -1,0 +1,16 @@
+flask
+flask-sqlalchemy
+flask-login
+flask-wtf
+psycopg2-binary
+python-dotenv
+numpy
+opencv-python
+insightface
+onnxruntime-gpu
+mediapipe
+torch --index-url https://download.pytorch.org/whl/cpu
+pillow
+reportlab
+tzdata
+pytest

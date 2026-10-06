@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ classroom.name }} - Kiosk</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; background: #0f172a; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .video-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        /* Mirror the video horizontally for user comfort */
+        .video-container img { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); filter: brightness(0.9) contrast(1.1); }
+        
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+        
+        .header { padding: 2.5rem 3rem; display: flex; justify-content: space-between; background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), transparent); }
+        .header h1 { margin: 0; font-size: 2.5rem; font-weight: 700; text-shadow: 0 4px 12px rgba(0,0,0,0.5); letter-spacing: -0.02em; }
+        .header .clock { font-size: 2.5rem; font-weight: 600; text-shadow: 0 4px 12px rgba(0,0,0,0.5); font-variant-numeric: tabular-nums; }
+        
+        .center-guide { flex-grow: 1; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        
+        .face-oval { 
+            width: 320px; 
+            height: 420px; 
+            border: 3px dashed rgba(255,255,255,0.4); 
+            border-radius: 50%; 
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.5), inset 0 0 40px rgba(0,0,0,0.2); 
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            position: relative;
+        }
+        
+        .face-oval::after {
+            content: '';
+            position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: all 0.4s ease;
+        }
+
+        .face-oval.active { 
+            border-color: #10b981; 
+            border-style: solid; 
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.5), 0 0 40px rgba(16, 185, 129, 0.4); 
+            transform: scale(1.02);
+        }
+        
+        .face-oval.active::after {
+            border-color: rgba(16, 185, 129, 0.3);
+            transform: scale(1.05);
+        }
+
+        .face-oval.error { 
+            border-color: #ef4444; 
+            border-style: solid; 
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.5), 0 0 40px rgba(239, 68, 68, 0.4); 
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+            40%, 60% { transform: translate3d(8px, 0, 0); }
+        }
+        
+        .prompt-container { 
+            background: rgba(15, 23, 42, 0.85); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 2.5rem; 
+            text-align: center; 
+            border-top: 1px solid rgba(255,255,255,0.1); 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
+        }
+        .prompt-text { font-size: 2rem; font-weight: 400; margin: 0; color: #e2e8f0; transition: opacity 0.3s; }
+        .result-text { font-size: 2.5rem; margin-top: 0.5rem; font-weight: 700; opacity: 0; transition: opacity 0.3s, transform 0.3s; transform: translateY(10px); }
+        .result-text.show { opacity: 1; transform: translateY(0); }
+        
+        .result-success { color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+        .result-error { color: #ef4444; text-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <img src="{{ url_for('kiosk.stream', classroom_id=classroom.id) }}" alt="Camera Stream">
+    </div>
+    
+    <div class="overlay">
+        <div class="header">
+            <h1>{{ classroom.name }}</h1>
+            <div class="clock" id="clock">00:00:00</div>
+        </div>
+        
+        <div class="center-guide">
+            <div class="face-oval" id="face-oval"></div>
+        </div>
+        
+        <div class="prompt-container">
+            <h2 class="prompt-text" id="prompt-text">Please look at the camera.</h2>
+            <div class="result-text" id="result-text"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Start background controller
+        fetch("{{ url_for('kiosk.start_controller', classroom_id=classroom.id) }}");
+        
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        
+        async function pollState() {
+            try {
+                let res = await fetch("{{ url_for('kiosk.get_state', classroom_id=classroom.id) }}");
+                let state = await res.json();
+                
+                document.getElementById('prompt-text').innerText = state.prompt;
+                
+                let resultEl = document.getElementById('result-text');
+                
+                if (state.result === 'success') {
+                    resultEl.innerText = state.message;
+                    resultEl.className = 'result-text result-success show';
+                    document.getElementById('face-oval').className = 'face-oval active';
+                } else if (state.result === 'error') {
+                    resultEl.innerText = state.message;
+                    resultEl.className = 'result-text result-error show';
+                    document.getElementById('face-oval').className = 'face-oval error';
+                } else {
+                    resultEl.innerText = '';
+                    resultEl.className = 'result-text';
+                    document.getElementById('face-oval').className = 'face-oval';
+                }
+                
+            } catch (err) {
+                console.error("Poll error:", err);
+            }
+            setTimeout(pollState, 300);
+        }
+        pollState();
+    </script>
+</body>
+</html>

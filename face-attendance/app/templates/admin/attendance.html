@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Attendance Records{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Attendance Records</h2>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn" style="background: #475569;">Back to Dashboard</a>
+    </div>
+
+    {% if records %}
+    <table style="width: 100%; text-align: left; border-collapse: collapse;">
+        <tr>
+            <th>Time</th>
+            <th>Student</th>
+            <th>Roll No</th>
+            <th>Status</th>
+            <th>Method</th>
+            <th>Confidence</th>
+        </tr>
+        {% for record in records %}
+        <tr>
+            <td>{{ record.marked_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ record.student.full_name }}</td>
+            <td>{{ record.student.roll_no }}</td>
+            <td>
+                {% if record.status == 'present' %}
+                    <span style="color: #10b981; font-weight: 600;">Present</span>
+                {% elif record.status == 'late' %}
+                    <span style="color: #f59e0b; font-weight: 600;">Late</span>
+                {% else %}
+                    <span style="color: #ef4444; font-weight: 600;">{{ record.status|capitalize }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if record.method == 'face' %}
+                    <span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">Face AI</span>
+                {% else %}
+                    <span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">Manual</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if record.similarity %}
+                    {{ "%.1f"|format(record.similarity * 100) }}%
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+        <p>No attendance records found yet.</p>
+        <p>Start a quick session and walk in front of the camera to log attendance!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
