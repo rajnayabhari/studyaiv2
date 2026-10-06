@@ -1,6 +1,6 @@
 # PROGRESS
 
-## Current phase: 0 — Setup (complete except phone camera exit check)
+## Current phase: 0 — Setup (COMPLETE, all exit checks pass)
 
 ### Done
 - Repo layout at repo root (plan's `face-attendance/` folder flattened into `c:\studyai_v2`).
@@ -19,7 +19,7 @@
 | DB tables exist | OK (13 tables) |
 | Login page loads / admin login | OK |
 | check_camera.py webcam (`0`) | OK 640x480 @ 28.7 fps |
-| check_camera.py phone | **FAIL — phone (192.168.0.100) and laptop (192.168.18.94) are on different networks** |
+| check_camera.py phone (`http://192.168.18.202:8080/video`) | OK 1920x1080 @ 5.2 fps |
 
 ### Decisions
 - Port 5001 by default (5000 was occupied). Configurable via `PORT`.
@@ -28,7 +28,8 @@
 - Webcam opened with `CAP_DSHOW` on Windows for fast startup.
 
 ### Broken / open
-- Phone camera unreachable until on the same Wi-Fi.
+- Phone stream at 1080p gives only ~5 fps; set IP Webcam resolution to 1280x720 or 640x480 for the kiosk (target 6–8 fps processing).
+- CUDA provider listed by onnxruntime but not yet verified with a real model (Phase 2).
 
 ### Next
 - Phase 1: role decorators, base layout, admin CRUD.
