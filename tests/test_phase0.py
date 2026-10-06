@@ -44,7 +44,7 @@ def test_login_success_and_failure(app):
     c = app.test_client()
     assert b"Invalid" in c.post("/login", data={"username": "admin", "password": "x"}).data
     r = c.post("/login", data={"username": "admin", "password": "pw"}, follow_redirects=True)
-    assert b"Welcome, admin" in r.data
+    assert b"Admin Dashboard" in r.data
 
 
 def test_unauthenticated_root_redirects(app):

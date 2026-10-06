@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<h1>{{ title }}</h1>
+
+<div class="card" style="max-width: 600px; margin: 20px 0;">
+    <h3>Add {{ title }}</h3>
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        {% if title == 'Classrooms' %}
+        <label>Name</label><input type="text" name="name" required>
+        <label>Camera Type</label>
+        <select name="camera_type" style="width:100%; padding:12px; border-radius:10px; background:hsl(228 30% 6% / .7); color:white; border:1px solid var(--border);">
+            <option value="webcam">Webcam</option>
+            <option value="ip">IP Camera</option>
+        </select>
+        <label>Camera URL</label><input type="text" name="camera_url" placeholder="0 or http://...">
+        
+        {% elif title == 'Courses' %}
+        <label>Code</label><input type="text" name="code" required>
+        <label>Name</label><input type="text" name="name" required>
+        
+        {% elif title == 'Sections' %}
+        <label>Name</label><input type="text" name="name" required>
+        <label>Semester</label><input type="number" name="semester" required>
+        
+        {% elif title == 'Teachers' %}
+        <label>Full Name</label><input type="text" name="full_name" required>
+        <label>Email</label><input type="email" name="email" required>
+        
+        {% elif title == 'Students' %}
+        <label>Roll No</label><input type="text" name="roll_no" required>
+        <label>Full Name</label><input type="text" name="full_name" required>
+        <label>Email</label><input type="email" name="email" required>
+        <label>Section</label>
+        <select name="section_id" style="width:100%; padding:12px; border-radius:10px; background:hsl(228 30% 6% / .7); color:white; border:1px solid var(--border);">
+            {% for sec in extra_data.sections %}<option value="{{ sec.id }}">{{ sec.name }}</option>{% endfor %}
+        </select>
+        
+        {% elif title == 'Timetable' %}
+        <label>Course</label>
+        <select name="course_id" style="width:100%; padding:12px; border-radius:10px; background:hsl(228 30% 6% / .7); color:white; border:1px solid var(--border);">
+            {% for c in extra_data.courses %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select>
+        <label>Teacher</label>
+        <select name="teacher_id" style="width:100%; padding:12px; border-radius:10px; background:hsl(228 30% 6% / .7); color:white; border:1px solid var(--border);">
+            {% for t in extra_data.teachers %}<option value="{{ t.id }}">{{ t.full_name }}</option>{% endfor %}
+        </select>
+        <label>Section</label>
+        <select name="section_id" style="width:100%; padding:12px; border-radius:10px; background:hsl(228 30% 6% / .7); color:white; border:1px solid var(--border);">
+            {% for s in extra_data.sections %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+        </select>
+        <label>Classroom</label>
+        <select name="classroom_id" style="width:100%; padding:12px; border-radius:10px; background:hsl(228 30% 6% / .7); color:white; border:1px solid var(--border);">
+            {% for cl in extra_data.classrooms %}<option value="{{ cl.id }}">{{ cl.name }}</option>{% endfor %}
+        </select>
+        <label>Weekday (0=Mon, 6=Sun)</label><input type="number" name="weekday" min="0" max="6" required>
+        <label>Start Time (HH:MM)</label><input type="time" name="start_time" required>
+        <label>End Time (HH:MM)</label><input type="time" name="end_time" required>
+        {% endif %}
+        
+        <button class="btn" type="submit">Save</button>
+    </form>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>{% for c in cols %}<th>{{ c }}</th>{% endfor %}</tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                {% for c in cols %}
+                <td>{{ item[c] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

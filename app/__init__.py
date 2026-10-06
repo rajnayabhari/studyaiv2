@@ -1,12 +1,9 @@
 """Application factory."""
 import logging
 import os
-
 from flask import Flask
-
 from .config import Config
 from .extensions import csrf, db, login_manager
-
 
 def create_app(config_class=Config):
     app = Flask(__name__, instance_relative_config=True)
@@ -30,5 +27,14 @@ def create_app(config_class=Config):
 
     from .auth import bp as auth_bp
     app.register_blueprint(auth_bp)
+
+    from .admin import bp as admin_bp
+    app.register_blueprint(admin_bp, url_prefix="/admin")
+
+    from .teacher import bp as teacher_bp
+    app.register_blueprint(teacher_bp, url_prefix="/teacher")
+
+    from .student import bp as student_bp
+    app.register_blueprint(student_bp, url_prefix="/student")
 
     return app
