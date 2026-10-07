@@ -63,7 +63,7 @@ def seed_db():
 
         classroom = Classroom.query.filter_by(name='Room 101').first()
         if not classroom:
-            classroom = Classroom(name='Room 101', camera_type='ip', camera_url='http://172.20.10.10:8080/video')
+            classroom = Classroom(name='Room 101', camera_type='webcam', camera_url='0')
             db.session.add(classroom)
             
         db.session.flush()
