@@ -47,7 +47,11 @@
                     <div style="font-weight: 600; font-size: 1.05rem;">{{ stat.course_name }}</div>
                     <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.3rem;">Attended {{ stat.attended }} of {{ stat.total }} classes</div>
                 </div>
-                <div style="font-size: 1.5rem; font-weight: 700; {% if stat.percentage >= 80 %}color: #10b981;{% else %}color: #ef4444;{% endif %}">
+                {% if stat.percentage >= 80 %}
+                <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">
+                {% else %}
+                <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">
+                {% endif %}
                     {{ "%.1f"|format(stat.percentage) }}%
                 </div>
             </div>
