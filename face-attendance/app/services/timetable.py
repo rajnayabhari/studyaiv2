@@ -2,7 +2,7 @@ from datetime import timedelta
 from ..models import db, ClassSession, TimetableSlot
 from .clock import Clock
 
-def create_quick_session(course_id, teacher_id, section_id, classroom_id, duration_min=30, late_min=2, absent_min=30):
+def create_quick_session(course_id, teacher_id, section_id, classroom_id, duration_min=30, late_min=10, absent_min=30):
     now = Clock.now()
     end_at = now + timedelta(minutes=duration_min)
     
